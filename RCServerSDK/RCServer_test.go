@@ -274,6 +274,24 @@ func Test_GroupRefresh(t *testing.T) {
 	}
 }
 
+//群禁言
+func Test_GroupGagAdd(t *testing.T) {
+	if returnData, returnError := rcServer.GroupGagAdd("testUserId", "testGroupId", "10"); returnError != nil || len(returnData) == 0 {
+		t.Error("群禁言 ：测试失败！！！")
+	} else {
+		t.Log("群禁言 ：测试通过。returnData:", string(returnData))
+	}
+}
+
+//群禁言移除
+func Test_GroupRollback(t *testing.T) {
+	if returnData, returnError := rcServer.GroupRollback("testUserId", "testGroupId"); returnError != nil || len(returnData) == 0 {
+		t.Error("群禁言移除 ：测试失败！！！")
+	} else {
+		t.Log("群禁言移除 ：测试通过。returnData:", string(returnData))
+	}
+}
+
 //销毁聊天室 方法
 func Test_ChatroomDestroy(t *testing.T) {
 	if returnData, returnError := rcServer.ChatroomDestroy("testChatroomId"); returnError != nil || len(returnData) == 0 {
@@ -289,5 +307,41 @@ func Test_ChatroomQuery(t *testing.T) {
 		t.Error("查询聊天室信息 ：测试失败！！！")
 	} else {
 		t.Log("查询聊天室信息 ：测试通过。returnData:", string(returnData))
+	}
+}
+
+//聊天室禁言
+func Test_ChatroomGagAdd(t *testing.T) {
+	if returnData, returnError := rcServer.ChatroomGagAdd("testUserId", "testChatroomId", "10"); returnError != nil || len(returnData) == 0 {
+		t.Error("聊天室禁言 ：测试失败！！！")
+	} else {
+		t.Log("聊天室禁言 ：测试通过。returnData:", string(returnData))
+	}
+}
+
+//聊天室禁言移除
+func Test_ChatroomGagRollback(t *testing.T) {
+	if returnData, returnError := rcServer.ChatroomGagRollback("testUserId", "testChatroomId"); returnError != nil || len(returnData) == 0 {
+		t.Error("聊天室禁言移除 ：测试失败！！！")
+	} else {
+		t.Log("聊天室禁言移除 ：测试通过。returnData:", string(returnData))
+	}
+}
+
+//聊天室停止分发消息
+func Test_ChatroomStopMsg(t *testing.T) {
+	if returnData, returnError := rcServer.ChatroomStopMsg("testChatroomId"); returnError != nil || len(returnData) == 0 {
+		t.Error("聊天室停止分发消息 ：测试失败！！！")
+	} else {
+		t.Log("聊天室停止分发消息 ：测试通过。returnData:", string(returnData))
+	}
+}
+
+//聊天室恢复分发消息
+func Test_ChatroomResumeMsg(t *testing.T) {
+	if returnData, returnError := rcServer.ChatroomResumeMsg("testChatroomId"); returnError != nil || len(returnData) == 0 {
+		t.Error("聊天室恢复分发消息 ：测试失败！！！")
+	} else {
+		t.Log("聊天室恢复分发消息 ：测试通过。returnData:", string(returnData))
 	}
 }
