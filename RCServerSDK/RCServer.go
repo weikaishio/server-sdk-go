@@ -54,16 +54,22 @@ const (
 	RC_MESSAGE_HISTORY          = "/message/history"
 	RC_MESSAGE_HISTORY_DELETE   = "/message/history/delete"
 
-	RC_GROUP_CREATE  = "/group/create"
-	RC_GROUP_JOIN    = "/group/join"
-	RC_GROUP_QUIT    = "/group/quit"
-	RC_GROUP_DISMISS = "/group/dismiss"
-	RC_GROUP_REFRESH = "/group/refresh"
-	RC_GROUP_SYNC    = "/group/sync"
+	RC_GROUP_CREATE      = "/group/create"
+	RC_GROUP_JOIN        = "/group/join"
+	RC_GROUP_QUIT        = "/group/quit"
+	RC_GROUP_DISMISS     = "/group/dismiss"
+	RC_GROUP_REFRESH     = "/group/refresh"
+	RC_GROUP_SYNC        = "/group/sync"
+	RC_GROUP_GAGADD      = "/group/user/gag/add"
+	RC_GROUP_GAGROLLBACK = "/group/user/gag/rollback"
 
-	RC_CHATROOM_CREATE  = "/chatroom/create"
-	RC_CHATROOM_DESTROY = "/chatroom/destroy"
-	RC_CHATROOM_QUERY   = "/chatroom/query"
+	RC_CHATROOM_CREATE      = "/chatroom/create"
+	RC_CHATROOM_DESTROY     = "/chatroom/destroy"
+	RC_CHATROOM_QUERY       = "/chatroom/query"
+	RC_CHATROOM_GAGADD      = "/chatroom/user/gag/add"
+	RC_CHATROOM_GAGROLLBACK = "/chatroom/user/gag/rollback"
+	RC_CHATROOM_MSGSTOP     = "/chatroom/message/stopDistribution"
+	RC_CHATROOM_MSGRESUME   = "/chatroom/message/resumeDistribution"
 )
 
 type RCServer struct {
@@ -428,6 +434,29 @@ func (rcServer *RCServer) GroupRefresh(groupId, groupName string) ([]byte, error
 	return byteData, err
 }
 
+//群禁言
+func (rcServer *RCServer) GroupGagAdd(userId, groupId, minute string) ([]byte, error) {
+	destinationUrl := rcServer.apiUrl + RC_GROUP_GAGADD + rcServer.format
+	req := httplib.Post(destinationUrl)
+	req.Param("userId", userId)
+	req.Param("groupId", groupId)
+	req.Param("minute", minute)
+	fillHeader(req, rcServer)
+	byteData, err := req.Bytes()
+	return byteData, err
+}
+
+//群禁言移除
+func (rcServer *RCServer) GroupRollback(userId, groupId string) ([]byte, error) {
+	destinationUrl := rcServer.apiUrl + RC_GROUP_GAGROLLBACK + rcServer.format
+	req := httplib.Post(destinationUrl)
+	req.Param("userId", userId)
+	req.Param("groupId", groupId)
+	fillHeader(req, rcServer)
+	byteData, err := req.Bytes()
+	return byteData, err
+}
+
 //创建聊天室 方法
 func (rcServer *RCServer) ChatroomCreat(chatroomId, chatroomName string) ([]byte, error) {
 	destinationUrl := rcServer.apiUrl + RC_CHATROOM_CREATE + rcServer.format
@@ -451,6 +480,49 @@ func (rcServer *RCServer) ChatroomDestroy(chatroomId string) ([]byte, error) {
 //查询聊天室信息 方法
 func (rcServer *RCServer) ChatroomQuery(chatroomId string) ([]byte, error) {
 	destinationUrl := rcServer.apiUrl + RC_CHATROOM_QUERY + rcServer.format
+	req := httplib.Post(destinationUrl)
+	req.Param("chatroomId", chatroomId)
+	fillHeader(req, rcServer)
+	byteData, err := req.Bytes()
+	return byteData, err
+}
+
+//聊天室禁言
+func (rcServer *RCServer) ChatroomGagAdd(userId, chatroomId, minute string) ([]byte, error) {
+	destinationUrl := rcServer.apiUrl + RC_CHATROOM_GAGADD + rcServer.format
+	req := httplib.Post(destinationUrl)
+	req.Param("userId", userId)
+	req.Param("chatroomId", chatroomId)
+	req.Param("minute", minute)
+	fillHeader(req, rcServer)
+	byteData, err := req.Bytes()
+	return byteData, err
+}
+
+//聊天室禁言移除
+func (rcServer *RCServer) ChatroomGagRollback(userId, chatroomId string) ([]byte, error) {
+	destinationUrl := rcServer.apiUrl + RC_CHATROOM_GAGROLLBACK + rcServer.format
+	req := httplib.Post(destinationUrl)
+	req.Param("userId", userId)
+	req.Param("chatroomId", chatroomId)
+	fillHeader(req, rcServer)
+	byteData, err := req.Bytes()
+	return byteData, err
+}
+
+//聊天室停止分发消息
+func (rcServer *RCServer) ChatroomStopMsg(chatroomId string) ([]byte, error) {
+	destinationUrl := rcServer.apiUrl + RC_CHATROOM_MSGSTOP + rcServer.format
+	req := httplib.Post(destinationUrl)
+	req.Param("chatroomId", chatroomId)
+	fillHeader(req, rcServer)
+	byteData, err := req.Bytes()
+	return byteData, err
+}
+
+//聊天室恢复分发消息
+func (rcServer *RCServer) ChatroomResumeMsg(chatroomId string) ([]byte, error) {
+	destinationUrl := rcServer.apiUrl + RC_CHATROOM_MSGRESUME + rcServer.format
 	req := httplib.Post(destinationUrl)
 	req.Param("chatroomId", chatroomId)
 	fillHeader(req, rcServer)
