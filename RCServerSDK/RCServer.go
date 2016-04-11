@@ -21,6 +21,7 @@ package RCServerSDK
 import (
 	"bytes"
 	"crypto/sha1"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -35,7 +36,8 @@ import (
 )
 
 const (
-	RC_SERVER_API_URL    = "https://api.cn.rong.io"
+	RC_SERVER_API_URL = "https://api.cn.rong.io"
+	// RC_SERVER_API_URL    = "https://api.cn.ronghub.com"
 	RC_USER_GET_TOKEN    = "/user/getToken"
 	RC_USER_REFRESH      = "/user/refresh"
 	RC_USER_CHECK_ONLINE = "/user/checkOnline"
@@ -78,6 +80,11 @@ type RCServer struct {
 	appSecret string
 	//json/xml
 	format string
+}
+type RCModelToken struct {
+	Code   int
+	UserId string
+	Token  string
 }
 
 //初始化RCServer
@@ -122,7 +129,7 @@ func fillHeader(req *httplib.BeegoHTTPRequest, rcServer *RCServer) {
 }
 
 //获取 Token 方法
-func (rcServer *RCServer) UserGetToken(userId, name, portraitUri string) ([]byte, error) {
+func (rcServer *RCServer) UserGetToken(userId, name, portraitUri string) (RCModelToken, error) {
 	destinationUrl := rcServer.apiUrl + RC_USER_GET_TOKEN + rcServer.format
 	req := httplib.Post(destinationUrl)
 	req.Param("userId", userId)
@@ -130,11 +137,14 @@ func (rcServer *RCServer) UserGetToken(userId, name, portraitUri string) ([]byte
 	req.Param("portraitUri", portraitUri)
 	fillHeader(req, rcServer)
 	byteData, err := req.Bytes()
-	return byteData, err
+	var rctoken RCModelToken
+	fmt.Println("UserGetToken", userId, string(byteData))
+	json.Unmarshal(byteData, &rctoken)
+	return rctoken, err
 }
 
 //刷新用户信息 方法
-func (rcServer *RCServer) UserRefresh(userId, name, portraitUri string) ([]byte, error) {
+func (rcServer *RCServer) UserRefresh(userId, name, portraitUri string) (RCModelToken, error) {
 	destinationUrl := rcServer.apiUrl + RC_USER_REFRESH + rcServer.format
 	req := httplib.Post(destinationUrl)
 	req.Param("userId", userId)
@@ -142,7 +152,9 @@ func (rcServer *RCServer) UserRefresh(userId, name, portraitUri string) ([]byte,
 	req.Param("portraitUri", portraitUri)
 	fillHeader(req, rcServer)
 	byteData, err := req.Bytes()
-	return byteData, err
+	var rctoken RCModelToken
+	json.Unmarshal(byteData, &rctoken)
+	return rctoken, err
 }
 
 //检查用户在线状态 方法
@@ -220,6 +232,10 @@ func (rcServer *RCServer) UserBlackQuery(userId string) ([]byte, error) {
 
 //发送单聊消息 方法
 //说明：一个用户向另外一个用户发送消息
+/*
+fromUserId=1000000001&toUserId=1000000007&objectName=RC%3ATxtMsg&
+content=%7B%22content%22%3A%22hello%22%2C%22extra%22%3A%22helloExtra%22%2C%22user%22%3A%7B%22id%22%3A%224242%22%2C%22name%22%3A%22Robin%22%2C%22icon%22%3A%22http%3A%2F%2Fwww.demo.com%2Fp1.png%22%7D%7D
+*/
 func (rcServer *RCServer) MessagePrivatePublish(fromUserId string, toUserIds []string, objectName, content, pushContent, pushData string) ([]byte, error) {
 	destinationUrl := rcServer.apiUrl + RC_MESSAGE_PRIVATE_PUBLISH + rcServer.format
 	req := httplib.Post(destinationUrl)
@@ -375,40 +391,87 @@ func (rcServer *RCServer) GroupSync(userId string, groupIdAndNameArray []map[str
 
 //创建群组 方法
 //创建群组，并将用户加入该群组，用户将可以收到该群的消息。注：其实本方法是加入群组方法 /group/join 的别名。
-func (rcServer *RCServer) GroupCreat(userId, groupId, groupName string) ([]byte, error) {
-	destinationUrl := rcServer.apiUrl + RC_GROUP_CREATE + rcServer.format
-	req := httplib.Post(destinationUrl)
-	req.Param("userId", userId)
-	req.Param("groupId", groupId)
-	req.Param("groupName", groupName)
-	fillHeader(req, rcServer)
-	byteData, err := req.Bytes()
-	return byteData, err
+func (rcServer *RCServer) GroupCreat(userIds []string, groupId, groupName string) ([]byte, error) {
+	// destinationUrl := rcServer.apiUrl + RC_GROUP_CREATE + rcServer.format
+	// req := httplib.Post(destinationUrl)
+	// for _, userId := range userIds {
+	// 	req.Param("userId", userId)
+	// }
+	// req.Param("groupId", groupId)
+	// req.Param("groupName", groupName)
+	// fillHeader(req, rcServer)
+	// byteData, err := req.Bytes()
+	// return byteData, err
+	return rcServer.GroupJoin(userIds, groupId, groupName)
 }
 
 //加入群组 方法
 //将用户加入指定群组，用户将可以收到该群的消息。
-func (rcServer *RCServer) GroupJoin(userId, groupId, groupName string) ([]byte, error) {
+func (rcServer *RCServer) GroupJoin(userIds []string, groupId, groupName string) ([]byte, error) {
 	destinationUrl := rcServer.apiUrl + RC_GROUP_JOIN + rcServer.format
-	req := httplib.Post(destinationUrl)
-	req.Param("userId", userId)
-	req.Param("groupId", groupId)
-	req.Param("groupName", groupName)
-	fillHeader(req, rcServer)
-	byteData, err := req.Bytes()
-	return byteData, err
+	// req := httplib.Post(destinationUrl)
+	// for _, userId := range userIds {
+	// 	req.Param("userId", userId)
+	// }
+	// req.Param("groupId", groupId)
+	// req.Param("groupName", groupName)
+	// fillHeader(req, rcServer)
+	// byteData, err := req.Bytes()
+	// return byteData, err
+
+	u := url.Values{}
+	for _, userId := range userIds {
+		u.Add("userId", userId)
+	}
+	u.Add("groupId", groupId)
+	u.Add("groupName", groupName)
+
+	req, err := http.NewRequest("POST", destinationUrl, bytes.NewBufferString(u.Encode()))
+
+	nonce, timestamp, signature := getSignature(rcServer)
+	req.Header.Set("App-Key", rcServer.appKey)
+	req.Header.Set("Nonce", nonce)
+	req.Header.Set("Timestamp", timestamp)
+	req.Header.Set("Signature", signature)
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	client := &http.Client{}
+	res, _ := client.Do(req)
+	defer res.Body.Close()
+	body, err := ioutil.ReadAll(res.Body)
+	return body, err
 }
 
 //退出群组 方法
 //将用户从群中移除，不再接收该群组的消息。
-func (rcServer *RCServer) GroupQuit(userId, groupId string) ([]byte, error) {
+func (rcServer *RCServer) GroupQuit(userIds []string, groupId string) ([]byte, error) {
 	destinationUrl := rcServer.apiUrl + RC_GROUP_QUIT + rcServer.format
-	req := httplib.Post(destinationUrl)
-	req.Param("userId", userId)
-	req.Param("groupId", groupId)
-	fillHeader(req, rcServer)
-	byteData, err := req.Bytes()
-	return byteData, err
+	// req := httplib.Post(destinationUrl)
+	// req.Param("userId", userId)
+	// req.Param("groupId", groupId)
+	// fillHeader(req, rcServer)
+	// byteData, err := req.Bytes()
+	// return byteData, err
+	u := url.Values{}
+	for _, userId := range userIds {
+		u.Add("userId", userId)
+	}
+	u.Add("groupId", groupId)
+
+	req, err := http.NewRequest("POST", destinationUrl, bytes.NewBufferString(u.Encode()))
+
+	nonce, timestamp, signature := getSignature(rcServer)
+	req.Header.Set("App-Key", rcServer.appKey)
+	req.Header.Set("Nonce", nonce)
+	req.Header.Set("Timestamp", timestamp)
+	req.Header.Set("Signature", signature)
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	client := &http.Client{}
+	res, _ := client.Do(req)
+	defer res.Body.Close()
+	body, err := ioutil.ReadAll(res.Body)
+	return body, err
 }
 
 //解散群组 方法
