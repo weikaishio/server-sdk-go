@@ -36,8 +36,8 @@ import (
 )
 
 const (
-	RC_SERVER_API_URL = "https://api.cn.rong.io"
-	// RC_SERVER_API_URL    = "https://api.cn.ronghub.com"
+	// RC_SERVER_API_URL = "https://api.cn.rong.io"
+	RC_SERVER_API_URL    = "https://api.cn.ronghub.com"
 	RC_USER_GET_TOKEN    = "/user/getToken"
 	RC_USER_REFRESH      = "/user/refresh"
 	RC_USER_CHECK_ONLINE = "/user/checkOnline"
@@ -138,7 +138,6 @@ func (rcServer *RCServer) UserGetToken(userId, name, portraitUri string) (RCMode
 	fillHeader(req, rcServer)
 	byteData, err := req.Bytes()
 	var rctoken RCModelToken
-	fmt.Println("UserGetToken", userId, string(byteData))
 	json.Unmarshal(byteData, &rctoken)
 	return rctoken, err
 }
@@ -321,12 +320,14 @@ func (rcServer *RCServer) MessageChatroomPublish(fromUserId string, toChatroomId
 //发送广播消息 方法
 //说明：某发送消息给一个应用下的所有注册用户。
 //此服务尚未公开提供。如您需要，请提交工单给我们登记。
-func (rcServer *RCServer) MessageBroadcast(fromUserId, objectName, content string) ([]byte, error) {
+func (rcServer *RCServer) MessageBroadcast(fromUserId, objectName, content, pushContent, pushData string) ([]byte, error) {
 	destinationUrl := rcServer.apiUrl + RC_MESSAGE_BROADCAST + rcServer.format
 	req := httplib.Post(destinationUrl)
 	req.Param("fromUserId", fromUserId)
 	req.Param("objectName", objectName)
 	req.Param("content", content)
+	req.Param("pushContent", pushContent)
+	req.Param("pushData", pushData)
 	fillHeader(req, rcServer)
 	byteData, err := req.Bytes()
 	return byteData, err
